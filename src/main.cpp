@@ -3,22 +3,30 @@
 
 using namespace geode::prelude;
 
-class $modify(MyPlayerObject, PlayerObject) {
-    void pushButton(PlayerButton p0) {
-        // When upside down and playing as Ship or Wave, invert push to act as a release
-        if (m_isUpsideDown && (m_isShip || m_isDart)) {
-            PlayerObject::releaseButton(p0);
+class $modify(AlwaysUprightInverted, PlayerObject) {
+    // Suppress or fix visual rotation if needed, or handle input inversion:
+    void pushButton(PlayerButton button) {
+        // Check if upside down and currently using Ship (m_isShip) or Dart/Wave (m_isDart)
+        bool shouldInvert = this->m_isUpsideDown && (this->m_isShip || this->m_isDart);
+        
+        if (shouldInvert) {
+            // Invert input: treat a press as a release so holding drops and letting go holds
+            PlayerObject::releaseButton(button);
             return;
         }
-        PlayerObject::pushButton(p0);
+        
+        PlayerObject::pushButton(button);
     }
 
-    void releaseButton(PlayerButton p0) {
-        // When upside down and playing as Ship or Wave, invert release to act as a hold (push)
-        if (m_isUpsideDown && (m_isShip || m_isDart)) {
-            PlayerObject::pushButton(p0);
+    void releaseButton(PlayerButton button) {
+        bool shouldInvert = this->m_isUpsideDown && (this->m_isShip || this->m_isDart);
+        
+        if (shouldInvert) {
+            // Invert input: treat a release as a press
+            PlayerObject::pushButton(button);
             return;
         }
-        PlayerObject::releaseButton(p0);
+        
+        PlayerObject::releaseButton(button);
     }
 };
